@@ -6,7 +6,7 @@ import play.api.db.Database
 import models.User
 
 class UserRepository @Inject()(db: Database) {
-  def addUser(user: User): Boolean = {
+  def createUser(user: User): Boolean = {
     val rowsAffected = db.withConnection { implicit connection =>
       SQL(
         """

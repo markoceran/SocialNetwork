@@ -9,15 +9,15 @@ import services.UserService
 @Singleton
 class UserController @Inject()(cc: ControllerComponents, userService: UserService) extends AbstractController(cc) {
 
-  def addUser = Action(parse.json) { request =>
+  def createUser = Action(parse.json) { request =>
     request.body.validate[User].fold(
       errors => {
         BadRequest(Json.obj("status" -> "error", "message" -> "Invalid JSON"))
       },
       user => {
-        val userAdded = userService.addUser(user)
+        val userAdded = userService.createUser(user)
         if (userAdded) {
-          Ok(Json.obj("status" -> "success", "message" -> "User added successfully"))
+          Ok("User added successfully")
         } else {
           InternalServerError(Json.obj("status" -> "error", "message" -> "Failed to add user"))
         }

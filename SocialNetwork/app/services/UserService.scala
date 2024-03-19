@@ -5,9 +5,9 @@ import models.User
 import repositories.UserRepository
 
 class UserService @Inject()(userRepository: UserRepository) {
-  def addUser(user: User): Boolean = {
+  def createUser(user: User): Boolean = {
     if (isValidUser(user)) {
-      userRepository.addUser(user)
+      userRepository.createUser(user)
     } else {
       false
     }
