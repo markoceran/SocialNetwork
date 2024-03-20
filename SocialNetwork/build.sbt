@@ -11,7 +11,8 @@ lazy val root = (project in file("."))
       jdbc,
       "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test,
       "org.playframework.anorm" %% "anorm" % "2.7.0",
-      "mysql" % "mysql-connector-java" % "8.0.28"
+      "mysql" % "mysql-connector-java" % "8.0.28",
+      "org.mindrot" % "jbcrypt" % "0.4"
     )
 
   )
