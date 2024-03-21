@@ -11,7 +11,9 @@ import java.sql.PreparedStatement
 import java.sql.SQLException
 import java.time.LocalDate
 
-
+// todo: use separate execution context (thread pool) to launch db requests since they are blockng
+//       https://www.playframework.com/documentation/3.0.x/AccessingAnSQLDatabase
+//       https://www.playframework.com/documentation/3.0.x/AccessingAnSQLDatabase#Using-a-CustomExecutionContext
 class UserRepository @Inject()(db: Database) {
   def createUser(user: User): Boolean = {
     val rowsAffected = db.withConnection { implicit connection =>
@@ -25,7 +27,7 @@ class UserRepository @Inject()(db: Database) {
         "lastName" -> user.lastName,
         "username" -> user.username,
         "email" -> user.email,
-        "password" -> BCrypt.hashpw(user.password, BCrypt.gensalt()),
+        "password" -> BCrypt.hashpw(user.password, BCrypt.gensalt()), // todo: move to service?
         "dateOfBirth" -> user.dateOfBirth,
         "phoneNumber" -> user.phoneNumber,
         "gender" -> user.gender.toString
@@ -35,6 +37,7 @@ class UserRepository @Inject()(db: Database) {
     rowsAffected > 0
   }
 
+  // todo: is it possible to auto generate user parser?
   private val userParser: RowParser[User] =
   {
         get[BigInt]("id") ~
@@ -59,6 +62,8 @@ class UserRepository @Inject()(db: Database) {
   }
 
   def updateUser(username: String, updatedUser: User): Boolean = {
+    // todo: not good
+    //       try to use anorm...
     val query =
       """
         | UPDATE user

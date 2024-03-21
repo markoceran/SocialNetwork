@@ -14,11 +14,15 @@ import helper.TokenUtils
 class UserController @Inject()(cc: ControllerComponents, userService: UserService) extends AbstractController(cc) {
 
   def createUser = Action(parse.json) { request =>
+    // todo: use parse.json[User] to validate json format
     request.body.validate[User].fold(
       errors => {
         BadRequest("Invalid JSON")
       },
       user => {
+        // todo: move business logic validation into services
+        //       what if username is already taken?
+        //       email? name? lastname???
         if(!validateEmail(user.email)){
           BadRequest("Invalid email format")
         }else if(!validatePassword(user.password)){
@@ -40,6 +44,7 @@ class UserController @Inject()(cc: ControllerComponents, userService: UserServic
 
   def getUserByUsername(username: String) = Action { implicit request =>
 
+    // todo: move JWT auth stuff to custom action 
     val token = request.headers.get("Authorization").map(_.replace("Bearer ", "")).getOrElse("")
     val (isValid, isExpired) = TokenUtils.validateJwtToken(token)
 
@@ -83,6 +88,8 @@ class UserController @Inject()(cc: ControllerComponents, userService: UserServic
   }
 
   def login = Action(parse.json) { implicit request =>
+    // todo: use 'DTO' ?
+    //       fe. case class LoginRequest(username: String, password: String)
     val json = request.body
     val username = (json \ "username").as[String]
     val password = (json \ "password").as[String]
@@ -91,6 +98,7 @@ class UserController @Inject()(cc: ControllerComponents, userService: UserServic
 
     user match {
       case Some(user) =>
+        // todo: move business logic to auth service/user service
         if (BCrypt.checkpw(password, user.password)) {
           val token = TokenUtils.generateJwtToken(user.username)
           Ok(token)
