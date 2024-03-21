@@ -14,4 +14,8 @@ class UserService @Inject()(userRepository: UserRepository) {
     userRepository.getUserByUsername(username)
   }
 
+  def updateUser(username: String, user: User): Boolean = {
+    userRepository.updateUser(username, user)
+  }
+
 }

@@ -16,3 +16,14 @@ CREATE TABLE user
 
     PRIMARY KEY (id)
 );
+
+CREATE TABLE friendship
+(
+	user_id        BIGINT NOT NULL,
+    friend_id      BIGINT NOT NULL,
+    
+	FOREIGN KEY (user_id) REFERENCES user (id),
+    FOREIGN KEY (friend_id) REFERENCES user (id)
+   
+
+)
