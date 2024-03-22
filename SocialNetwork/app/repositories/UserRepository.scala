@@ -3,103 +3,53 @@ package repositories
 import javax.inject.Inject
 import anorm._
 import play.api.db.Database
-import models.{Gender, User}
-import org.mindrot.jbcrypt.BCrypt
-import anorm.SqlParser.{get, str}
-import java.sql.Connection
-import java.sql.PreparedStatement
-import java.sql.SQLException
-import java.time.LocalDate
+import models.User
+import repositories.DatabaseExecutionContext.databaseExecutionContext
 
-// todo: use separate execution context (thread pool) to launch db requests since they are blockng
-//       https://www.playframework.com/documentation/3.0.x/AccessingAnSQLDatabase
-//       https://www.playframework.com/documentation/3.0.x/AccessingAnSQLDatabase#Using-a-CustomExecutionContext
-class UserRepository @Inject()(db: Database) {
-  def createUser(user: User): Boolean = {
+import scala.concurrent.{ExecutionContext, Future}
+import anorm.{Macro, RowParser}
+
+class UserRepository @Inject()(db: Database) (implicit ec: ExecutionContext){
+
+  def createUser(user: User): Future[Boolean] = Future {
     val rowsAffected = db.withConnection { implicit connection =>
       SQL(
         """
-        INSERT INTO user (name, lastName, username, email, password, dateOfBirth, phoneNumber, gender)
-        VALUES ({name}, {lastName}, {username}, {email}, {password}, {dateOfBirth}, {phoneNumber}, {gender})
+        INSERT INTO user (username, password)
+        VALUES ({username}, {password})
         """
       ).on(
-        "name" -> user.name,
-        "lastName" -> user.lastName,
         "username" -> user.username,
-        "email" -> user.email,
-        "password" -> BCrypt.hashpw(user.password, BCrypt.gensalt()), // todo: move to service?
-        "dateOfBirth" -> user.dateOfBirth,
-        "phoneNumber" -> user.phoneNumber,
-        "gender" -> user.gender.toString
+        "password" -> user.password,
       ).executeUpdate()
     }
-
     rowsAffected > 0
-  }
+  }(databaseExecutionContext)
 
-  // todo: is it possible to auto generate user parser?
-  private val userParser: RowParser[User] =
-  {
-        get[BigInt]("id") ~
-        get[String]("name") ~
-        get[String]("lastName") ~
-        get[String]("username") ~
-        get[String]("email") ~
-        get[String]("password") ~
-        get[LocalDate]("dateOfBirth") ~
-        get[String]("phoneNumber") ~
-        get[String]("gender") map {
-      case id ~ name ~ lastName ~ username ~ email ~ password ~ dateOfBirth ~ phoneNumber ~ genderStr =>
-        val gender = Gender.withName(genderStr)
-        User(id ,name, lastName, username, email, password, dateOfBirth, phoneNumber, gender)
-    }
-  }
 
-  def getUserByUsername(username: String): Option[User] = {
+  private val userParser: RowParser[User] = Macro.namedParser[User]
+  def getUserByUsername(username: String): Future[Option[User]] = Future {
     db.withConnection { implicit connection =>
       SQL"SELECT * FROM user WHERE username = $username".as(userParser.singleOpt)
     }
-  }
+  }(databaseExecutionContext)
 
-  def updateUser(username: String, updatedUser: User): Boolean = {
-    // todo: not good
-    //       try to use anorm...
-    val query =
-      """
-        | UPDATE user
-        | SET name = ?, lastName = ?, email = ?, phoneNumber = ?, dateOfBirth = ?
-        | WHERE username = ?
-        """.stripMargin
-
-    var connection: Connection = null
-    var preparedStatement: PreparedStatement = null
-
-    try {
-      connection = db.getConnection()
-      preparedStatement = connection.prepareStatement(query)
-
-      preparedStatement.setString(1, updatedUser.name)
-      preparedStatement.setString(2, updatedUser.lastName)
-      preparedStatement.setString(3, updatedUser.email)
-      preparedStatement.setString(4, updatedUser.phoneNumber)
-      preparedStatement.setDate(5, java.sql.Date.valueOf(updatedUser.dateOfBirth))
-      preparedStatement.setString(6, username)
-
-      val rowsAffected = preparedStatement.executeUpdate()
+  def updateUser(username: String, updatedUser: User): Future[Boolean] = Future {
+    db.withConnection { implicit connection =>
+      val rowsAffected = SQL(
+        """
+         UPDATE user
+         SET username = {newUsername}, password = {newPassword}
+         WHERE username = {username}
+         """
+      ).on(
+        "newUsername" -> updatedUser.username,
+        "newPassword" -> updatedUser.password,
+        "username" -> username
+      ).executeUpdate()
 
       rowsAffected > 0
-    } catch {
-      case e: SQLException =>
-        e.printStackTrace()
-        false
-    } finally {
-      if (preparedStatement != null) {
-        preparedStatement.close()
-      }
-      if (connection != null) {
-        connection.close()
-      }
     }
-  }
+  }(databaseExecutionContext)
 
 }

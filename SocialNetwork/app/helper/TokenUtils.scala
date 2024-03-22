@@ -4,6 +4,8 @@ import io.jsonwebtoken.security.Keys
 
 import java.util.Date
 import io.jsonwebtoken.{JwtBuilder, Jwts, SignatureAlgorithm}
+import play.api.mvc.{AnyContent, Request}
+
 
 object TokenUtils {
 
@@ -24,30 +26,26 @@ object TokenUtils {
     jwtBuilder.compact()
   }
 
-  def validateJwtToken(token: String): (Boolean, Boolean) = {
+  def validateJwtToken(request: Request[AnyContent]): Boolean = {
     try {
+      val token = request.headers.get("Authorization").map(_.replace("Bearer ", "")).getOrElse("")
       val claims = Jwts.parser()
         .setSigningKey(jwtSecretKey)
         .parseClaimsJws(token)
         .getBody
 
-      val username = claims.get("username", classOf[String])
       val expiration = claims.getExpiration
-
-      val isValid = true
-      val isExpired = expiration.before(new Date())
-
-      (isValid, isExpired)
+      val now = new Date()
+      expiration.after(now)
     } catch {
       case _: Exception =>
-        val isValid = false
-        val isExpired = false
-        (isValid, isExpired)
+        false
     }
   }
 
-  def getUsernameFromToken(token: String): Option[String] = {
+  def getUsernameFromToken(request: Request[AnyContent]): Option[String] = {
     try {
+      val token = request.headers.get("Authorization").map(_.replace("Bearer ", "")).getOrElse("")
       val claims = Jwts.parser()
         .setSigningKey(jwtSecretKey)
         .parseClaimsJws(token)
