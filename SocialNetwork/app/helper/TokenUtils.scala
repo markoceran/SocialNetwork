@@ -11,7 +11,7 @@ object TokenUtils {
 
   private val jwtSecretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256)
 
-  def generateJwtToken(username: String): String = {
+  def generateJwtToken(username: String, id: BigInt): String = {
     val nowMillis = System.currentTimeMillis()
     val expMillis = nowMillis + 3600000 // Token expires in 1 hour
     val now = new Date(nowMillis)
@@ -21,12 +21,13 @@ object TokenUtils {
       .setIssuedAt(now)
       .setExpiration(exp)
       .claim("username", username)
+      .claim("id", id.toString)
       .signWith(SignatureAlgorithm.HS256, jwtSecretKey)
 
     jwtBuilder.compact()
   }
 
-  def validateJwtToken(request: Request[AnyContent]): Boolean = {
+  def validateJwtToken(request: Request[Any]): Boolean = {
     try {
       val token = request.headers.get("Authorization").map(_.replace("Bearer ", "")).getOrElse("")
       val claims = Jwts.parser()
@@ -43,7 +44,7 @@ object TokenUtils {
     }
   }
 
-  def getUsernameFromToken(request: Request[AnyContent]): Option[String] = {
+  def getUsernameFromToken(request: Request[Any]): Option[String] = {
     try {
       val token = request.headers.get("Authorization").map(_.replace("Bearer ", "")).getOrElse("")
       val claims = Jwts.parser()
@@ -53,6 +54,22 @@ object TokenUtils {
 
       val username = claims.get("username", classOf[String])
       Some(username)
+    } catch {
+      case _: Exception =>
+        None
+    }
+  }
+
+  def getUserIdFromToken(request: Request[Any]): Option[BigInt] = {
+    try {
+      val token = request.headers.get("Authorization").map(_.replace("Bearer ", "")).getOrElse("")
+      val claims = Jwts.parser()
+        .setSigningKey(jwtSecretKey)
+        .parseClaimsJws(token)
+        .getBody
+
+      val id = claims.get("id", classOf[String])
+      Some(BigInt(id))
     } catch {
       case _: Exception =>
         None

@@ -7,3 +7,5 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 POST    /register                   controllers.UserController.createUser
 GET     /users/:username            controllers.UserController.getUserByUsername(username: String)
 POST    /login                      controllers.UserController.login
+PUT    /changePassword                      controllers.UserController.changePassword
+PUT    /changeUsername                    controllers.UserController.changeUsername

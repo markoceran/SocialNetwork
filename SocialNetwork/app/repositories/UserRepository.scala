@@ -6,10 +6,10 @@ import play.api.db.Database
 import models.User
 import repositories.DatabaseExecutionContext.databaseExecutionContext
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future}
 import anorm.{Macro, RowParser}
 
-class UserRepository @Inject()(db: Database) (implicit ec: ExecutionContext){
+class UserRepository @Inject()(db: Database){
 
   def createUser(user: User): Future[Boolean] = Future {
     val rowsAffected = db.withConnection { implicit connection =>
@@ -34,17 +34,33 @@ class UserRepository @Inject()(db: Database) (implicit ec: ExecutionContext){
     }
   }(databaseExecutionContext)
 
-  def updateUser(username: String, updatedUser: User): Future[Boolean] = Future {
+  def changePassword(username: String, newPassword: String): Future[Boolean] = Future {
     db.withConnection { implicit connection =>
       val rowsAffected = SQL(
         """
          UPDATE user
-         SET username = {newUsername}, password = {newPassword}
+         SET password = {newPassword}
          WHERE username = {username}
          """
       ).on(
-        "newUsername" -> updatedUser.username,
-        "newPassword" -> updatedUser.password,
+        "newPassword" -> newPassword,
+        "username" -> username
+      ).executeUpdate()
+
+      rowsAffected > 0
+    }
+  }(databaseExecutionContext)
+
+  def changeUsername(username: String, newUsername: String): Future[Boolean] = Future {
+    db.withConnection { implicit connection =>
+      val rowsAffected = SQL(
+        """
+         UPDATE user
+         SET username = {newUsername}
+         WHERE username = {username}
+         """
+      ).on(
+        "newUsername" -> newUsername,
         "username" -> username
       ).executeUpdate()
 

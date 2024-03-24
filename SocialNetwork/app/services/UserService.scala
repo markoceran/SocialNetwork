@@ -4,7 +4,7 @@ package services
 import helper.TokenUtils
 
 import javax.inject.Inject
-import models.{LoginRequest, User}
+import models.{LoginRequest, NewPasswordRequest, NewUsernameRequest, User, UserDetailsResponse}
 import org.mindrot.jbcrypt.BCrypt
 import repositories.UserRepository
 
@@ -29,19 +29,39 @@ class UserService @Inject()(userRepository: UserRepository) (implicit ec: Execut
     }
   }
 
-  def getUserByUsername(username: String): Future[Option[User]] = {
-    userRepository.getUserByUsername(username)
+  def getUserByUsername(username: String): Future[Option[UserDetailsResponse]] = {
+    userRepository.getUserByUsername(username).map {
+      case Some(user)=>
+        val userDetails: UserDetailsResponse = UserDetailsResponse(user.id, user.username)
+        Some(userDetails)
+      case None => None
+    }
   }
 
-  def updateUser(username: String, user: User): Future[Boolean] = {
-    userRepository.updateUser(username, user)
+  def changePassword(username: String, newPasswordRequest: NewPasswordRequest):  Future[Boolean] = {
+      if ((newPasswordRequest.newPassword == newPasswordRequest.newPasswordAgain) && validatePassword(newPasswordRequest.newPassword)) {
+        val hashedPassword = BCrypt.hashpw(newPasswordRequest.newPassword, BCrypt.gensalt())
+        userRepository.changePassword(username, hashedPassword)
+      }
+      else{
+        Future.successful(false)
+      }
+  }
+
+  def changeUsername(username: String, newUsernameRequest: NewUsernameRequest): Future[Boolean] = {
+    userRepository.getUserByUsername(newUsernameRequest.username).flatMap {
+      case Some(_) =>
+        Future.successful(false)
+      case None =>
+        userRepository.changeUsername(username, newUsernameRequest.username)
+    }
   }
 
   def login(loginRequest: LoginRequest): Future[String] = {
     userRepository.getUserByUsername(loginRequest.username).map {
       case Some(user) =>
         if (BCrypt.checkpw(loginRequest.password, user.password)) {
-          TokenUtils.generateJwtToken(user.username)
+          TokenUtils.generateJwtToken(user.username, user.id)
         } else {
           ""
         }
