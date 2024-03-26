@@ -4,7 +4,7 @@ package services
 import helper.TokenUtils
 
 import javax.inject.Inject
-import models.{LoginRequest, NewPasswordRequest, NewUsernameRequest, User, UserDetailsResponse}
+import models.{LoginRequest, NewPasswordRequest, User, UserDetailsResponse}
 import org.mindrot.jbcrypt.BCrypt
 import repositories.UserRepository
 
@@ -48,12 +48,12 @@ class UserService @Inject()(userRepository: UserRepository) (implicit ec: Execut
       }
   }
 
-  def changeUsername(username: String, newUsernameRequest: NewUsernameRequest): Future[Boolean] = {
-    userRepository.getUserByUsername(newUsernameRequest.username).flatMap {
+  def changeUsername(username: String, newUsername: String): Future[Boolean] = {
+    userRepository.getUserByUsername(newUsername).flatMap {
       case Some(_) =>
         Future.successful(false)
       case None =>
-        userRepository.changeUsername(username, newUsernameRequest.username)
+        userRepository.changeUsername(username, newUsername)
     }
   }
 

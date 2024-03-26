@@ -18,6 +18,16 @@ CREATE TABLE friendship
     
 	FOREIGN KEY (user_id) REFERENCES user (id),
     FOREIGN KEY (friend_id) REFERENCES user (id)
-   
+);
 
-)
+CREATE TABLE friendship_request
+(
+	id             BIGINT AUTO_INCREMENT,
+	forUser_id        BIGINT NOT NULL,
+    fromUser_id      BIGINT NOT NULL,
+    approved		boolean,
+
+    PRIMARY KEY (id),
+	FOREIGN KEY (forUser_id) REFERENCES user (id),
+    FOREIGN KEY (fromUser_id) REFERENCES user (id)
+);

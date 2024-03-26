@@ -4,8 +4,12 @@ GET     /                           controllers.HomeController.index()
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
-POST    /register                   controllers.UserController.createUser
-GET     /users/:username            controllers.UserController.getUserByUsername(username: String)
-POST    /login                      controllers.UserController.login
+POST    /register                           controllers.UserController.createUser
+GET     /users/:username                    controllers.UserController.getUserByUsername(username: String)
+POST    /login                              controllers.UserController.login
 PUT    /changePassword                      controllers.UserController.changePassword
-PUT    /changeUsername                    controllers.UserController.changeUsername
+PUT    /changeUsername                      controllers.UserController.changeUsername
+POST    /createFriendshipRequest            controllers.FriendshipController.createFriendshipRequest
+PUT    /acceptRequest                       controllers.FriendshipController.acceptRequest
+GET     /getMyRequests                      controllers.FriendshipController.getMyRequests
+DELETE     /denyRequest                      controllers.FriendshipController.denyRequest

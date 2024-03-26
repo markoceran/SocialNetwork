@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject._
 import play.api.mvc._
-import models.{LoginRequest, NewPasswordRequest, NewUsernameRequest, User}
+import models.{LoginRequest, NewPasswordRequest, User}
 import services.UserService
 
 import javax.inject.Inject
@@ -54,11 +54,12 @@ class UserController @Inject()(cc: ControllerComponents, userService: UserServic
     }
   }
 
-  def changeUsername= tokenValidationAction.async(parse.json[NewUsernameRequest]) { request =>
-    val newUsernameRequest: NewUsernameRequest = request.body
+  def changeUsername= tokenValidationAction.async(parse.json) { request =>
+    val jsonBody = request.body
+    val newUsername = (jsonBody \ "username").as[String]
     val usernameOption: Option[String] = TokenUtils.getUsernameFromToken(request)
       usernameOption.map { username =>
-        userService.changeUsername(username, newUsernameRequest).map { success =>
+        userService.changeUsername(username, newUsername).map { success =>
           if (success) {
             Ok("Username updated successfully")
           } else {
