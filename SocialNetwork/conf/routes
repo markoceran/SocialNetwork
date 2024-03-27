@@ -10,3 +10,4 @@ POST    /createFriendshipRequest            controllers.FriendshipController.cre
 PUT    /acceptRequest                       controllers.FriendshipController.acceptRequest
 GET     /getMyRequests                      controllers.FriendshipController.getMyRequests
 DELETE     /denyRequest                      controllers.FriendshipController.denyRequest
+POST    /createPost                              controllers.PostController.createPost

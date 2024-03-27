@@ -33,3 +33,14 @@ CREATE TABLE friendship_request
 	FOREIGN KEY (forUser_id) REFERENCES user (id),
     FOREIGN KEY (fromUser_id) REFERENCES user (id)
 );
+
+CREATE TABLE post
+(
+	id            			BIGINT AUTO_INCREMENT,
+	content        			VARCHAR(250) NOT NULL,
+    postedByUser_id      	BIGINT NOT NULL,
+    edited					boolean,
+
+    PRIMARY KEY (id),
+	FOREIGN KEY (postedByUser_id) REFERENCES user (id)
+);
