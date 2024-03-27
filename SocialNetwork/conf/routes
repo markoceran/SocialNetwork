@@ -11,3 +11,5 @@ PUT    /acceptRequest                       controllers.FriendshipController.acc
 GET     /getMyRequests                      controllers.FriendshipController.getMyRequests
 DELETE     /denyRequest                      controllers.FriendshipController.denyRequest
 POST    /createPost                              controllers.PostController.createPost
+PUT    /editPost                              controllers.PostController.editPost
+GET    /post/:id                              controllers.PostController.getPostById(id: String)

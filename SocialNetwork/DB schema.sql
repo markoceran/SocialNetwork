@@ -39,6 +39,7 @@ CREATE TABLE post
 	id            			BIGINT AUTO_INCREMENT,
 	content        			VARCHAR(250) NOT NULL,
     postedByUser_id      	BIGINT NOT NULL,
+    creation_date           datetime,
     edited					boolean,
 
     PRIMARY KEY (id),
