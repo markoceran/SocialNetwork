@@ -1,7 +1,7 @@
 package repositories
 
-import anorm.{Macro, RowParser, SQL, SqlStringInterpolation}
-import models.{FriendshipRequest, User, UserDetailsResponse}
+import anorm.{RowParser, SQL, SqlStringInterpolation}
+import models.{FriendshipRequest, UserDetailsResponse}
 import play.api.db.Database
 import repositories.DatabaseExecutionContext.databaseExecutionContext
 import anorm.SqlParser._
@@ -13,7 +13,7 @@ import scala.concurrent.Future
 class FriendshipRepository @Inject()(db: Database){
 
   def createFriendshipRequest(fromUserId: BigInt, forUserId: BigInt): Future[Boolean] = Future {
-    val rowsAffected = db.withConnection { implicit connection =>
+    val ID: Option[Long] = db.withConnection { implicit connection =>
       SQL(
         """
         INSERT INTO friendship_request (forUser_id, fromUser_id, approved)
@@ -23,9 +23,9 @@ class FriendshipRepository @Inject()(db: Database){
         "forUser_id" -> forUserId,
         "fromUser_id" -> fromUserId,
         "approved" -> false,
-      ).executeUpdate()
+      ).executeInsert()
     }
-    rowsAffected > 0
+    ID.isDefined
   }(databaseExecutionContext)
 
   def acceptRequest(requestId: BigInt): Future[Boolean] = Future {
@@ -74,7 +74,7 @@ class FriendshipRepository @Inject()(db: Database){
   }(databaseExecutionContext)
 
   def addFriend(userId: BigInt, friendId: BigInt): Future[Boolean] = Future {
-    val rowsAffected = db.withConnection { implicit connection =>
+    val ID: Option[Long] = db.withConnection { implicit connection =>
       SQL(
         """
         INSERT INTO friendship (user_id, friend_id)
@@ -83,9 +83,9 @@ class FriendshipRepository @Inject()(db: Database){
       ).on(
         "user_id" -> userId,
         "friend_id" -> friendId,
-      ).executeUpdate()
+      ).executeInsert()
     }
-    rowsAffected > 0
+    ID.isDefined
   }(databaseExecutionContext)
 
   val friendshipRequestWithUsersParser: RowParser[FriendshipRequest] = {
@@ -111,6 +111,18 @@ class FriendshipRepository @Inject()(db: Database){
         JOIN user u2 ON fr.fromUser_id = u2.id
         WHERE fr.forUser_id = $userId AND fr.approved = false
       """.as(friendshipRequestWithUsersParser.*)
+    }
+  }(databaseExecutionContext)
+
+  def getFriendshipRequestBetweenUsers(forUserId: BigInt, fromUserId: BigInt): Future[Option[FriendshipRequest]] = Future {
+    db.withConnection { implicit connection =>
+      SQL"""
+        SELECT fr.id, fr.approved, fr.forUser_id, u1.username AS forUsername, fr.fromUser_id, u2.username AS fromUsername
+        FROM friendship_request fr
+        JOIN user u1 ON fr.forUser_id = u1.id
+        JOIN user u2 ON fr.fromUser_id = u2.id
+        WHERE fr.forUser_id = $forUserId AND fr.fromUser_id = $fromUserId OR fr.forUser_id = $fromUserId AND fr.fromUser_id = $forUserId
+      """.as(friendshipRequestWithUsersParser.singleOpt)
     }
   }(databaseExecutionContext)
 

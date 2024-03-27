@@ -4,7 +4,7 @@ import io.jsonwebtoken.security.Keys
 
 import java.util.Date
 import io.jsonwebtoken.{JwtBuilder, Jwts, SignatureAlgorithm}
-import play.api.mvc.{AnyContent, Request}
+import play.api.mvc.{Request}
 
 
 object TokenUtils {

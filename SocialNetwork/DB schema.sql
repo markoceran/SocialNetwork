@@ -13,9 +13,11 @@ CREATE TABLE user
 
 CREATE TABLE friendship
 (
+	id             BIGINT AUTO_INCREMENT,
 	user_id        BIGINT NOT NULL,
     friend_id      BIGINT NOT NULL,
     
+    PRIMARY KEY (id),
 	FOREIGN KEY (user_id) REFERENCES user (id),
     FOREIGN KEY (friend_id) REFERENCES user (id)
 );

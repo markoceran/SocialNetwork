@@ -1,9 +1,10 @@
 package controllers
 
 import helper.{TokenUtils, TokenValidationAction}
+import models.{AcceptDenyRequest, CreateFriendshipRequest}
 import play.api.libs.json.Json
 import play.api.mvc.{AbstractController, ControllerComponents}
-import services.{FriendshipService, UserService}
+import services.FriendshipService
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -11,43 +12,40 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class FriendshipController @Inject()(cc: ControllerComponents, friendshipService: FriendshipService, tokenValidationAction: TokenValidationAction)(implicit ec: ExecutionContext) extends AbstractController(cc)  {
 
-  def createFriendshipRequest = tokenValidationAction.async(parse.json) { request =>
-    val jsonBody = request.body
-    val forUserId = (jsonBody \ "forUserId").as[BigInt]
+  def createFriendshipRequest = tokenValidationAction.async(parse.json[CreateFriendshipRequest]) { request =>
+    val createFriendshipRequest = request.body
     val fromUserIdOption = TokenUtils.getUserIdFromToken(request)
     fromUserIdOption.map { fromUserId =>
-      friendshipService.createFriendshipRequest(fromUserId, forUserId).map { success =>
+      friendshipService.createFriendshipRequest(fromUserId, createFriendshipRequest).map { success =>
         if (success) {
-          Ok("Friendship request created successfully")
+          Ok(Json.toJson("Friendship request created successfully"))
         } else {
-          InternalServerError("Failed to create friendship request")
+          BadRequest(Json.toJson("Failed to create friendship request"))
         }
       }
     }.getOrElse {
-      Future.successful(NotFound("User id not found"))
+      Future.successful(NotFound(Json.toJson("User id not found")))
     }
   }
 
-  def acceptRequest = tokenValidationAction.async(parse.json) { request =>
-    val jsonBody = request.body
-    val requestId = (jsonBody \ "requestId").as[BigInt]
-    friendshipService.acceptRequest(requestId).map { success =>
+  def acceptRequest = tokenValidationAction.async(parse.json[AcceptDenyRequest]) { request =>
+    val acceptRequest = request.body
+    friendshipService.acceptRequest(acceptRequest).map { success =>
         if (success) {
-          Ok("Friendship request accepted successfully")
+          Ok(Json.toJson("Friendship request accepted successfully"))
         } else {
-          InternalServerError("Failed to accept friendship request")
+          Forbidden(Json.toJson("Failed to accept friendship request"))
         }
     }
   }
 
-  def denyRequest = tokenValidationAction.async(parse.json) { request =>
-    val jsonBody = request.body
-    val requestId = (jsonBody \ "requestId").as[BigInt]
-    friendshipService.denyRequest(requestId).map { success =>
+  def denyRequest = tokenValidationAction.async(parse.json[AcceptDenyRequest]) { request =>
+    val denyRequest = request.body
+    friendshipService.denyRequest(denyRequest).map { success =>
       if (success) {
-        Ok("Friendship request denied successfully")
+        Ok(Json.toJson("Friendship request denied successfully"))
       } else {
-        InternalServerError("Failed to deny friendship request")
+        Forbidden(Json.toJson("Failed to deny friendship request"))
       }
     }
   }
@@ -60,7 +58,7 @@ class FriendshipController @Inject()(cc: ControllerComponents, friendshipService
         Ok(Json.toJson(requests))
       }
     }.getOrElse {
-      Future.successful(NotFound("User id not found"))
+      Future.successful(NotFound(Json.toJson("User id not found")))
     }
   }
 

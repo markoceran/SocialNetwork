@@ -1,52 +1,51 @@
 package services
 
-import models.FriendshipRequest
-import repositories.{FriendshipRepository, UserRepository}
+import models.{AcceptDenyRequest, CreateFriendshipRequest, FriendshipRequest}
+import repositories.FriendshipRepository
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class FriendshipService @Inject()(friendshipRepository: FriendshipRepository, userRepository: UserRepository) (implicit ec: ExecutionContext){
+class FriendshipService @Inject()(friendshipRepository: FriendshipRepository) (implicit ec: ExecutionContext){
 
-  def createFriendshipRequest(fromUserId: BigInt, forUserId: BigInt): Future[Boolean] = {
-     if (forUserId >= 0 ) {
-        friendshipRepository.createFriendshipRequest(fromUserId, forUserId)
-     } else {
-       Future.successful(false)
-     }
-  }
-
-  def acceptRequest(requestId: BigInt): Future[Boolean] = {
-    if (requestId >= 0) {
-      friendshipRepository.acceptRequest(requestId)
-      val requestFuture = friendshipRepository.getFriendshipRequestById(requestId)
+  def createFriendshipRequest(fromUserId: BigInt, createFriendshipRequest: CreateFriendshipRequest): Future[Boolean] = {
+    if(fromUserId != createFriendshipRequest.forUserId){
+      val requestFuture = friendshipRepository.getFriendshipRequestBetweenUsers(createFriendshipRequest.forUserId, fromUserId)
       requestFuture.flatMap {
-        case Some(request) =>
-          friendshipRepository.addFriend(request.fromUser.id, request.forUser.id)
-          friendshipRepository.addFriend(request.forUser.id, request.fromUser.id)
-        case None => Future.successful(false)
+        case Some(_) => Future.successful(false)
+        case None => friendshipRepository.createFriendshipRequest(fromUserId, createFriendshipRequest.forUserId)
       }
-
-    } else {
+    }else {
       Future.successful(false)
     }
   }
 
-  def denyRequest(requestId: BigInt): Future[Boolean] = {
-    if (requestId >= 0) {
-      val requestFuture = friendshipRepository.getFriendshipRequestById(requestId)
+  def acceptRequest(acceptRequest: AcceptDenyRequest): Future[Boolean] = {
+      val requestFuture = friendshipRepository.getFriendshipRequestById(acceptRequest.requestId)
       requestFuture.flatMap {
         case Some(request) =>
-          if(request.approved == false){
-            friendshipRepository.denyRequest(requestId)
+          if(!request.approved){
+            friendshipRepository.acceptRequest(acceptRequest.requestId)
+            friendshipRepository.addFriend(request.fromUser.id, request.forUser.id)
+            friendshipRepository.addFriend(request.forUser.id, request.fromUser.id)
+          }else {
+            Future.successful(false)
+          }
+        case None => Future.successful(false)
+      }
+  }
+
+  def denyRequest(denyRequest: AcceptDenyRequest): Future[Boolean] = {
+      val requestFuture = friendshipRepository.getFriendshipRequestById(denyRequest.requestId)
+      requestFuture.flatMap {
+        case Some(request) =>
+          if(!request.approved){
+            friendshipRepository.denyRequest(denyRequest.requestId)
           }else{
             Future.successful(false)
           }
         case None => Future.successful(false)
       }
-    } else {
-      Future.successful(false)
-    }
   }
 
   def getMyRequests(userId: BigInt): Future[List[FriendshipRequest]] = {

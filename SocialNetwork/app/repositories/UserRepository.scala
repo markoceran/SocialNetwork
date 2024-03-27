@@ -12,7 +12,7 @@ import anorm.{Macro, RowParser}
 class UserRepository @Inject()(db: Database){
 
   def createUser(user: User): Future[Boolean] = Future {
-    val rowsAffected = db.withConnection { implicit connection =>
+    val ID: Option[Long] = db.withConnection { implicit connection =>
       SQL(
         """
         INSERT INTO user (username, password)
@@ -21,9 +21,12 @@ class UserRepository @Inject()(db: Database){
       ).on(
         "username" -> user.username,
         "password" -> user.password,
-      ).executeUpdate()
+      ).executeInsert()
     }
-    rowsAffected > 0
+    ID match {
+      case Some(_) => true
+      case None => false
+    }
   }(databaseExecutionContext)
 
 

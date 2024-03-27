@@ -1,7 +1,9 @@
 package helper
 
+import play.api.libs.json.Json
 import play.api.mvc.Results.Unauthorized
 import play.api.mvc._
+
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -14,7 +16,7 @@ class TokenValidationAction @Inject()(parser: BodyParsers.Default)(implicit val 
     if (isValid) {
       block(request)
     } else {
-      Future.successful(Unauthorized("Invalid token"))
+      Future.successful(Unauthorized(Json.toJson("Invalid token")))
     }
   }
 }
