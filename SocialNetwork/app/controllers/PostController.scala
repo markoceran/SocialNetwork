@@ -1,7 +1,7 @@
 package controllers
 
 import helper.TokenValidationAction
-import models.{NewPost, UpdatePost}
+import models.{DeletePost, NewPost, UpdatePost}
 import play.api.libs.json.Json
 import play.api.mvc.{AbstractController, ControllerComponents}
 import services.PostService
@@ -33,6 +33,15 @@ class PostController @Inject()(cc: ControllerComponents, postService: PostServic
     val userId: BigInt = request.userId
     postService.editPost(userId, updatePost).map {
       case (true, _) => Ok(Json.obj("message" -> "Post updated successfully"))
+      case (false, message) => BadRequest(Json.obj("message" -> message))
+    }
+  }
+
+  def deletePost = tokenValidationAction.async(parse.json[DeletePost]) { request =>
+    val deletePost: DeletePost = request.body
+    val userId: BigInt = request.userId
+    postService.deletePost(userId, deletePost).map {
+      case (true, _) => Ok(Json.obj("message" -> "Post deleted successfully"))
       case (false, message) => BadRequest(Json.obj("message" -> message))
     }
   }

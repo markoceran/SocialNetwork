@@ -1,6 +1,6 @@
 package services
 
-import models.{NewPost, Post, UpdatePost}
+import models.{DeletePost, NewPost, Post, UpdatePost}
 import repositories.PostRepository
 
 import javax.inject.Inject
@@ -44,6 +44,18 @@ class PostService @Inject()(postRepository: PostRepository) (implicit ec: Execut
       true
     } else {
       false
+    }
+  }
+
+  def deletePost(userId: BigInt, deletePost: DeletePost): Future[(Boolean, String)] = {
+    postRepository.getPostById(deletePost.postId).flatMap {
+      case Some(post) =>
+        if (post.postedBy.id == userId) {
+          postRepository.deletePost(deletePost.postId).map(deletedSuccess => (deletedSuccess, ""))
+        } else {
+          Future.successful(false, "Post doesn't belong to the logged in user")
+        }
+      case None => Future.successful(false, "Post doesn't exist")
     }
   }
 

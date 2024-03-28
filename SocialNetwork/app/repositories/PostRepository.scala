@@ -71,5 +71,20 @@ class PostRepository @Inject()(db: Database){
     }
   }(databaseExecutionContext)
 
+  def deletePost(id: BigInt): Future[Boolean] = Future {
+    db.withConnection { implicit connection =>
+      val rowsAffected = SQL(
+        """
+         DELETE
+         FROM post
+         WHERE id = {id}
+         """
+      ).on(
+        "id" -> id
+      ).executeUpdate()
+
+      rowsAffected > 0
+    }
+  }(databaseExecutionContext)
 
 }

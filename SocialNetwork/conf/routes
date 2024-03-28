@@ -13,3 +13,4 @@ DELETE     /denyRequest                      controllers.FriendshipController.de
 POST    /createPost                              controllers.PostController.createPost
 PUT    /editPost                              controllers.PostController.editPost
 GET    /post/:id                              controllers.PostController.getPostById(id: String)
+DELETE     /deletePost                      controllers.PostController.deletePost
