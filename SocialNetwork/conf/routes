@@ -9,9 +9,9 @@ PUT    /changeUsername                      controllers.UserController.changeUse
 POST    /createFriendshipRequest            controllers.FriendshipController.createFriendshipRequest
 PUT    /acceptRequest                       controllers.FriendshipController.acceptRequest
 GET     /getMyRequests                      controllers.FriendshipController.getMyRequests
-DELETE     /denyRequest                      controllers.FriendshipController.denyRequest
-POST    /createPost                              controllers.PostController.createPost
-PUT    /editPost                              controllers.PostController.editPost
-GET    /post/:id                              controllers.PostController.getPostById(id: String)
+DELETE     /denyRequest                     controllers.FriendshipController.denyRequest
+POST    /createPost                         controllers.PostController.createPost
+PUT    /editPost                            controllers.PostController.editPost
+GET    /post/:id                            controllers.PostController.getPostById(id: String)
 DELETE     /deletePost                      controllers.PostController.deletePost
-GET    /getUsersPosts/:username/:pageNumber/:pageSize           controllers.PostController.getPostsByUser(username: String, pageNumber: Int, pageSize: Int)
+POST    /getUsersPosts                       controllers.PostController.getPostsByUser

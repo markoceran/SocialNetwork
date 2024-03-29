@@ -1,6 +1,6 @@
 package services
 
-import models.{DeletePost, NewPost, Post, UpdatePost}
+import models.{DeletePost, NewPost, PagePagination, Post, UpdatePost}
 import repositories.PostRepository
 
 import javax.inject.Inject
@@ -55,9 +55,12 @@ class PostService @Inject()(postRepository: PostRepository) (implicit ec: Execut
     }
   }
 
-  def getPostsByUser(username: String, pageNumber: Int, pageSize: Int): Future[List[Post]] = {
+  def getPostsByUser(pagePagination: PagePagination): Future[List[Post]] = {
+    val pageNumber = pagePagination.pageNumber.getOrElse(1)
+    val pageSize = pagePagination.pageSize.getOrElse(10)
+
     if(validatePaginationData(pageNumber, pageSize)){
-      postRepository.getPostsByUser(username, pageNumber, pageSize)
+      postRepository.getPostsByUser(pagePagination.username, pageNumber, pageSize)
     }else {
       Future.successful(List.empty[Post])
     }
