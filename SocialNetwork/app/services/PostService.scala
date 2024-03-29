@@ -40,11 +40,7 @@ class PostService @Inject()(postRepository: PostRepository) (implicit ec: Execut
   }
 
   private def validatePostContent(content: String): Boolean = {
-    if (content.length <= 250 && content != "" && content.length > 0) {
-      true
-    } else {
-      false
-    }
+    content.length <= 250 && content != "" && content.length > 0
   }
 
   def deletePost(userId: BigInt, deletePost: DeletePost): Future[(Boolean, String)] = {
@@ -57,6 +53,18 @@ class PostService @Inject()(postRepository: PostRepository) (implicit ec: Execut
         }
       case None => Future.successful(false, "Post doesn't exist")
     }
+  }
+
+  def getPostsByUser(username: String, pageNumber: Int, pageSize: Int): Future[List[Post]] = {
+    if(validatePaginationData(pageNumber, pageSize)){
+      postRepository.getPostsByUser(username, pageNumber, pageSize)
+    }else {
+      Future.successful(List.empty[Post])
+    }
+  }
+
+  private def validatePaginationData(pageNumber: Int, pageSize: Int): Boolean = {
+    pageNumber > 0 && pageSize > 0 && pageSize <= 100
   }
 
 }

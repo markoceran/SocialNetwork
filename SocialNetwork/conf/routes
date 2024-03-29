@@ -14,3 +14,4 @@ POST    /createPost                              controllers.PostController.crea
 PUT    /editPost                              controllers.PostController.editPost
 GET    /post/:id                              controllers.PostController.getPostById(id: String)
 DELETE     /deletePost                      controllers.PostController.deletePost
+GET    /getUsersPosts/:username/:pageNumber/:pageSize           controllers.PostController.getPostsByUser(username: String, pageNumber: Int, pageSize: Int)

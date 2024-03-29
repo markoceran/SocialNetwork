@@ -45,4 +45,11 @@ class PostController @Inject()(cc: ControllerComponents, postService: PostServic
       case (false, message) => BadRequest(Json.obj("message" -> message))
     }
   }
+
+  def getPostsByUser(username: String, pageNumber: Int, pageSize: Int) = tokenValidationAction.async(parse.anyContent) { _ =>
+    val postsFuture = postService.getPostsByUser(username, pageNumber, pageSize)
+    postsFuture.map { posts =>
+      Ok(Json.toJson(posts))
+    }
+  }
 }
