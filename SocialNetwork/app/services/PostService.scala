@@ -1,6 +1,6 @@
 package services
 
-import models.{DeletePost, NewPost, PagePagination, Post, UpdatePost}
+import models.{DeletePost, NewPost, PagePagination, PagePagination2, Post, UpdatePost}
 import repositories.PostRepository
 
 import javax.inject.Inject
@@ -68,6 +68,17 @@ class PostService @Inject()(postRepository: PostRepository) (implicit ec: Execut
 
   private def validatePaginationData(pageNumber: Int, pageSize: Int): Boolean = {
     pageNumber > 0 && pageSize > 0 && pageSize <= 100
+  }
+
+  def getMyFriendsPosts(userId: BigInt, pagePagination: PagePagination2): Future[List[Post]] = {
+    val pageNumber = pagePagination.pageNumber.getOrElse(1)
+    val pageSize = pagePagination.pageSize.getOrElse(10)
+
+    if (validatePaginationData(pageNumber, pageSize)) {
+      postRepository.getMyFriendsPosts(userId, pageNumber, pageSize)
+    } else {
+      Future.successful(List.empty[Post])
+    }
   }
 
 }

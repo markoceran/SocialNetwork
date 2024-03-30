@@ -1,7 +1,7 @@
 package repositories
 
 import anorm.{RowParser, SQL, SqlStringInterpolation}
-import models.{FriendshipRequest, UserDetailsResponse}
+import models.{FriendshipRequest, User, UserDetailsResponse}
 import play.api.db.Database
 import repositories.DatabaseExecutionContext.databaseExecutionContext
 import anorm.SqlParser._
@@ -125,6 +125,5 @@ class FriendshipRepository @Inject()(db: Database){
       """.as(friendshipRequestWithUsersParser.singleOpt)
     }
   }(databaseExecutionContext)
-
 
 }

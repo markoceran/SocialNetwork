@@ -3,10 +3,10 @@ package repositories
 import javax.inject.Inject
 import anorm._
 import play.api.db.Database
-import models.User
+import models.{User, UserDetailsResponse}
 import repositories.DatabaseExecutionContext.databaseExecutionContext
 
-import scala.concurrent.{Future}
+import scala.concurrent.Future
 import anorm.{Macro, RowParser}
 
 class UserRepository @Inject()(db: Database){
@@ -68,6 +68,19 @@ class UserRepository @Inject()(db: Database){
       ).executeUpdate()
 
       rowsAffected > 0
+    }
+  }(databaseExecutionContext)
+
+  private val userWithoutPasswordParser: RowParser[UserDetailsResponse] = Macro.namedParser[UserDetailsResponse]
+
+  def getMyFriends(userId: BigInt): Future[List[UserDetailsResponse]] = Future {
+    db.withConnection { implicit connection =>
+      SQL"""
+        SELECT u1.id, u1.username
+        FROM friendship f
+        JOIN user u1 ON f.friend_id = u1.id
+        WHERE f.user_id = $userId
+      """.as(userWithoutPasswordParser.*)
     }
   }(databaseExecutionContext)
 

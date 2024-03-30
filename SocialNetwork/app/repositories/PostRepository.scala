@@ -99,4 +99,17 @@ class PostRepository @Inject()(db: Database){
     }
   }(databaseExecutionContext)
 
+  def getMyFriendsPosts(userId: BigInt, pageNumber: Int, pageSize: Int): Future[List[Post]] = Future {
+    db.withConnection { implicit connection =>
+      SQL"""
+        SELECT p.id, p.content, p.postedByUser_id, p.creation_date, p.edited, u.username AS postedByUsername
+        FROM post p
+        JOIN user u ON p.postedByUser_id = u.id
+        JOIN friendship f ON p.postedByUser_id = f.friend_id
+        WHERE f.user_id = $userId ORDER BY p.creation_date ASC
+        LIMIT $pageSize OFFSET ${(pageNumber - 1) * pageSize}
+      """.as(postWithUserParser.*)
+    }
+  }(databaseExecutionContext)
+
 }
