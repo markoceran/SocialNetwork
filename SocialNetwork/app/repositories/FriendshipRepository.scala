@@ -1,7 +1,7 @@
 package repositories
 
 import anorm.{RowParser, SQL, SqlStringInterpolation}
-import models.{FriendshipRequest, User, UserDetailsResponse}
+import models.{Friendship, FriendshipRequest, User, UserDetailsResponse}
 import play.api.db.Database
 import repositories.DatabaseExecutionContext.databaseExecutionContext
 import anorm.SqlParser._
@@ -125,5 +125,16 @@ class FriendshipRepository @Inject()(db: Database){
       """.as(friendshipRequestWithUsersParser.singleOpt)
     }
   }(databaseExecutionContext)
+
+  private val friendshipParser: RowParser[Friendship] = Macro.namedParser[Friendship]
+  def weAreFriends(userId: BigInt, friendId: BigInt): Future[Boolean] = Future {
+    db.withConnection { implicit connection =>
+      SQL"""
+        SELECT *
+        FROM friendship
+        WHERE user_id = $userId AND friend_id = $friendId
+      """.as(friendshipParser.singleOpt)
+    }
+  }(databaseExecutionContext).map(_.nonEmpty)
 
 }

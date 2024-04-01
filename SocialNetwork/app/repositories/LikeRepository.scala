@@ -10,7 +10,7 @@ import scala.concurrent.Future
 
 class LikeRepository @Inject()(db: Database){
 
-  def addLike(userId: BigInt, postId: BigInt): Future[Boolean] = Future {
+  def like(userId: BigInt, postId: BigInt): Future[Boolean] = Future {
     val ID: Option[Long] = db.withConnection { implicit connection =>
       SQL(
         """
@@ -19,7 +19,7 @@ class LikeRepository @Inject()(db: Database){
         """
       ).on(
         "userId" -> userId,
-        "postId" -> postId,
+        "postId" -> postId
       ).executeInsert()
     }
     ID.isDefined
@@ -36,4 +36,22 @@ class LikeRepository @Inject()(db: Database){
       """.as(likeParser.singleOpt)
     }
   }(databaseExecutionContext)
+
+  def unlike(userId: BigInt, postId: BigInt): Future[Boolean] = Future {
+    db.withConnection { implicit connection =>
+      val rowsAffected = SQL(
+        """
+         DELETE
+         FROM likes
+         WHERE userId = {userId} AND postId = {postId}
+         """
+      ).on(
+        "userId" -> userId,
+        "postId" -> postId
+      ).executeUpdate()
+
+      rowsAffected > 0
+    }
+  }(databaseExecutionContext)
+
 }

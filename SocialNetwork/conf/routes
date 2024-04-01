@@ -16,4 +16,5 @@ GET    /post/:id                            controllers.PostController.getPostBy
 DELETE     /deletePost                      controllers.PostController.deletePost
 POST    /getUsersPosts                      controllers.PostController.getPostsByUser
 POST    /getMyFriendsPosts                  controllers.PostController.getMyFriendsPosts
-POST    /addLike                            controllers.LikeController.addLike
+POST    /like                               controllers.LikeController.like
+DELETE    /unlike                           controllers.LikeController.unlike

@@ -18,8 +18,8 @@ CREATE TABLE friendship
     friend_id      BIGINT NOT NULL,
     
     PRIMARY KEY (id),
-	FOREIGN KEY (user_id) REFERENCES user (id),
-    FOREIGN KEY (friend_id) REFERENCES user (id)
+	FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
+    FOREIGN KEY (friend_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
 CREATE TABLE friendship_request
@@ -30,8 +30,8 @@ CREATE TABLE friendship_request
     approved		boolean,
 
     PRIMARY KEY (id),
-	FOREIGN KEY (forUser_id) REFERENCES user (id),
-    FOREIGN KEY (fromUser_id) REFERENCES user (id)
+	FOREIGN KEY (forUser_id) REFERENCES user (id) ON DELETE CASCADE,
+    FOREIGN KEY (fromUser_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
 CREATE TABLE post
@@ -43,7 +43,7 @@ CREATE TABLE post
     edited					boolean,
 
     PRIMARY KEY (id),
-	FOREIGN KEY (postedByUser_id) REFERENCES user (id)
+	FOREIGN KEY (postedByUser_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
 CREATE TABLE likes
@@ -53,6 +53,6 @@ CREATE TABLE likes
     postId      			BIGINT NOT NULL,
 
     PRIMARY KEY (id),
-	FOREIGN KEY (userId) REFERENCES user (id),
-    FOREIGN KEY (postId) REFERENCES post (id)
+	FOREIGN KEY (userId) REFERENCES user (id) ON DELETE CASCADE,
+    FOREIGN KEY (postId) REFERENCES post (id) ON DELETE CASCADE
 );

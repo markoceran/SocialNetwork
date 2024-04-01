@@ -1,6 +1,6 @@
 package repositories
 
-import anorm.SqlParser.get
+import anorm.SqlParser.{get, scalar}
 import anorm.{RowParser, SQL, SqlStringInterpolation, ~}
 import models.{Post, UserDetailsResponse}
 import play.api.db.Database
@@ -109,6 +109,16 @@ class PostRepository @Inject()(db: Database){
         WHERE f.user_id = $userId ORDER BY p.creation_date DESC
         LIMIT $pageSize OFFSET ${(pageNumber - 1) * pageSize}
       """.as(postWithUserParser.*)
+    }
+  }(databaseExecutionContext)
+
+  def getPostedBy(postId: BigInt): Future[Option[BigInt]] = Future {
+    db.withConnection { implicit connection =>
+      SQL"""
+        SELECT postedByUser_id
+        FROM post
+        WHERE id = $postId
+      """.as(scalar[BigInt].singleOpt)
     }
   }(databaseExecutionContext)
 
