@@ -1,7 +1,7 @@
 package controllers
 
 import helper.TokenValidationAction
-import models.{DeletePost, NewPost, PagePagination, PagePagination2, UpdatePost}
+import models.{DeletePost, GetUserPosts, NewPost, Pagination, UpdatePost}
 import play.api.libs.json.Json
 import play.api.mvc.{AbstractController, ControllerComponents}
 import services.PostService
@@ -46,18 +46,18 @@ class PostController @Inject()(cc: ControllerComponents, postService: PostServic
     }
   }
 
-  def getPostsByUser = tokenValidationAction.async(parse.json[PagePagination]) { request =>
-    val pagePagination: PagePagination = request.body
-    val postsFuture = postService.getPostsByUser(pagePagination)
+  def getPostsByUser = tokenValidationAction.async(parse.json[GetUserPosts]) { request =>
+    val getUserPosts: GetUserPosts = request.body
+    val postsFuture = postService.getPostsByUser(getUserPosts)
     postsFuture.map { posts =>
       Ok(Json.toJson(posts))
     }
   }
 
-  def getMyFriendsPosts = tokenValidationAction.async(parse.json[PagePagination2]) { request =>
+  def getMyFriendsPosts = tokenValidationAction.async(parse.json[Pagination]) { request =>
     val userId: BigInt = request.userId
-    val pagePagination: PagePagination2 = request.body
-    val postsFuture = postService.getMyFriendsPosts(userId, pagePagination)
+    val pagination: Pagination = request.body
+    val postsFuture = postService.getMyFriendsPosts(userId, pagination)
     postsFuture.map { posts =>
       Ok(Json.toJson(posts))
     }

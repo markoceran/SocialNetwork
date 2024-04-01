@@ -93,7 +93,7 @@ class PostRepository @Inject()(db: Database){
         SELECT p.id, p.content, p.postedByUser_id, p.creation_date, p.edited, u.username AS postedByUsername
         FROM post p
         JOIN user u ON p.postedByUser_id = u.id
-        WHERE u.username = $username ORDER BY p.creation_date ASC
+        WHERE u.username = $username ORDER BY p.creation_date DESC
         LIMIT $pageSize OFFSET ${(pageNumber - 1) * pageSize}
       """.as(postWithUserParser.*)
     }
@@ -106,7 +106,7 @@ class PostRepository @Inject()(db: Database){
         FROM post p
         JOIN user u ON p.postedByUser_id = u.id
         JOIN friendship f ON p.postedByUser_id = f.friend_id
-        WHERE f.user_id = $userId ORDER BY p.creation_date ASC
+        WHERE f.user_id = $userId ORDER BY p.creation_date DESC
         LIMIT $pageSize OFFSET ${(pageNumber - 1) * pageSize}
       """.as(postWithUserParser.*)
     }

@@ -1,6 +1,6 @@
 package services
 
-import models.{DeletePost, NewPost, PagePagination, PagePagination2, Post, UpdatePost}
+import models.{DeletePost, GetUserPosts, NewPost, Pagination, Post, UpdatePost}
 import repositories.PostRepository
 
 import javax.inject.Inject
@@ -55,12 +55,12 @@ class PostService @Inject()(postRepository: PostRepository) (implicit ec: Execut
     }
   }
 
-  def getPostsByUser(pagePagination: PagePagination): Future[List[Post]] = {
-    val pageNumber = pagePagination.pageNumber.getOrElse(1)
-    val pageSize = pagePagination.pageSize.getOrElse(10)
+  def getPostsByUser(getUserPosts: GetUserPosts): Future[List[Post]] = {
+    val pageNumber = getUserPosts.pagination.pageNumber.getOrElse(1)
+    val pageSize = getUserPosts.pagination.pageSize.getOrElse(10)
 
     if(validatePaginationData(pageNumber, pageSize)){
-      postRepository.getPostsByUser(pagePagination.username, pageNumber, pageSize)
+      postRepository.getPostsByUser(getUserPosts.username, pageNumber, pageSize)
     }else {
       Future.successful(List.empty[Post])
     }
@@ -70,9 +70,9 @@ class PostService @Inject()(postRepository: PostRepository) (implicit ec: Execut
     pageNumber > 0 && pageSize > 0 && pageSize <= 100
   }
 
-  def getMyFriendsPosts(userId: BigInt, pagePagination: PagePagination2): Future[List[Post]] = {
-    val pageNumber = pagePagination.pageNumber.getOrElse(1)
-    val pageSize = pagePagination.pageSize.getOrElse(10)
+  def getMyFriendsPosts(userId: BigInt, pagination: Pagination): Future[List[Post]] = {
+    val pageNumber = pagination.pageNumber.getOrElse(1)
+    val pageSize = pagination.pageSize.getOrElse(10)
 
     if (validatePaginationData(pageNumber, pageSize)) {
       postRepository.getMyFriendsPosts(userId, pageNumber, pageSize)
