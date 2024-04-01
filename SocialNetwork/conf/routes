@@ -15,4 +15,5 @@ PUT    /editPost                            controllers.PostController.editPost
 GET    /post/:id                            controllers.PostController.getPostById(id: String)
 DELETE     /deletePost                      controllers.PostController.deletePost
 POST    /getUsersPosts                      controllers.PostController.getPostsByUser
-POST    /getMyFriendsPosts                   controllers.PostController.getMyFriendsPosts
+POST    /getMyFriendsPosts                  controllers.PostController.getMyFriendsPosts
+POST    /addLike                            controllers.LikeController.addLike

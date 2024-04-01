@@ -45,3 +45,14 @@ CREATE TABLE post
     PRIMARY KEY (id),
 	FOREIGN KEY (postedByUser_id) REFERENCES user (id)
 );
+
+CREATE TABLE likes
+(
+	id            			BIGINT AUTO_INCREMENT,
+	userId        			BIGINT NOT NULL,
+    postId      			BIGINT NOT NULL,
+
+    PRIMARY KEY (id),
+	FOREIGN KEY (userId) REFERENCES user (id),
+    FOREIGN KEY (postId) REFERENCES post (id)
+);
