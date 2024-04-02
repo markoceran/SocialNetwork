@@ -1,6 +1,6 @@
 package repositories
 
-import anorm.{Macro, RowParser, SQL, SqlStringInterpolation}
+import anorm.{Macro, RowParser, SQL, SqlParser, SqlStringInterpolation}
 import models.Like
 import play.api.db.Database
 import repositories.DatabaseExecutionContext.databaseExecutionContext
@@ -52,6 +52,16 @@ class LikeRepository @Inject()(db: Database){
 
       rowsAffected > 0
     }
+  }(databaseExecutionContext)
+
+  def likeCount(postId: BigInt): Future[Int] = Future {
+    db.withConnection { implicit connection =>
+      SQL"""
+        SELECT COUNT(*) AS likeCount
+        FROM likes
+        WHERE postId = $postId
+      """.as(SqlParser.int("likeCount").singleOpt)
+    }.getOrElse(0)
   }(databaseExecutionContext)
 
 }

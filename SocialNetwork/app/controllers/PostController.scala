@@ -47,17 +47,18 @@ class PostController @Inject()(cc: ControllerComponents, postService: PostServic
   }
 
   def getPostsByUser = tokenValidationAction.async(parse.json[GetUserPosts]) { request =>
+    val loggedUserId = request.userId
     val getUserPosts: GetUserPosts = request.body
-    val postsFuture = postService.getPostsByUser(getUserPosts)
+    val postsFuture = postService.getPostsByUser(loggedUserId, getUserPosts)
     postsFuture.map { posts =>
       Ok(Json.toJson(posts))
     }
   }
 
   def getMyFriendsPosts = tokenValidationAction.async(parse.json[Pagination]) { request =>
-    val userId: BigInt = request.userId
+    val loggedUserId: BigInt = request.userId
     val pagination: Pagination = request.body
-    val postsFuture = postService.getMyFriendsPosts(userId, pagination)
+    val postsFuture = postService.getMyFriendsPosts(loggedUserId, pagination)
     postsFuture.map { posts =>
       Ok(Json.toJson(posts))
     }

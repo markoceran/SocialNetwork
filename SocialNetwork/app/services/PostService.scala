@@ -1,12 +1,12 @@
 package services
 
-import models.{DeletePost, GetUserPosts, NewPost, Pagination, Post, UpdatePost}
-import repositories.PostRepository
+import models.{DeletePost, GetUserPosts, NewPost, Pagination, Post, PostDetailsResponse, UpdatePost}
+import repositories.{LikeRepository, PostRepository}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class PostService @Inject()(postRepository: PostRepository) (implicit ec: ExecutionContext){
+class PostService @Inject()(postRepository: PostRepository, likeRepository: LikeRepository) (implicit ec: ExecutionContext){
 
   def createPost(postedById: BigInt, newPost: NewPost): Future[(Boolean, String)] = {
     if (validatePostContent(newPost.content)) {
@@ -55,29 +55,45 @@ class PostService @Inject()(postRepository: PostRepository) (implicit ec: Execut
     }
   }
 
-  def getPostsByUser(getUserPosts: GetUserPosts): Future[List[Post]] = {
+  def getPostsByUser(loggedUserId: BigInt, getUserPosts: GetUserPosts): Future[List[PostDetailsResponse]] = {
     val pageNumber = getUserPosts.pagination.pageNumber.getOrElse(1)
     val pageSize = getUserPosts.pagination.pageSize.getOrElse(10)
 
-    if(validatePaginationData(pageNumber, pageSize)){
-      postRepository.getPostsByUser(getUserPosts.username, pageNumber, pageSize)
-    }else {
-      Future.successful(List.empty[Post])
+    if (validatePaginationData(pageNumber, pageSize)) {
+      postRepository.getPostsByUser(getUserPosts.username, pageNumber, pageSize).flatMap { postList =>
+        extendPostWithDetails(postList, loggedUserId)
+      }
+    } else {
+      Future.successful(List.empty[PostDetailsResponse])
     }
   }
+
 
   private def validatePaginationData(pageNumber: Int, pageSize: Int): Boolean = {
     pageNumber > 0 && pageSize > 0 && pageSize <= 100
   }
 
-  def getMyFriendsPosts(userId: BigInt, pagination: Pagination): Future[List[Post]] = {
+  def getMyFriendsPosts(loggedUserId: BigInt, pagination: Pagination): Future[List[PostDetailsResponse]] = {
     val pageNumber = pagination.pageNumber.getOrElse(1)
     val pageSize = pagination.pageSize.getOrElse(10)
 
     if (validatePaginationData(pageNumber, pageSize)) {
-      postRepository.getMyFriendsPosts(userId, pageNumber, pageSize)
+      postRepository.getMyFriendsPosts(loggedUserId, pageNumber, pageSize).flatMap{ postList =>
+        extendPostWithDetails(postList, loggedUserId)
+      }
     } else {
-      Future.successful(List.empty[Post])
+      Future.successful(List.empty[PostDetailsResponse])
+    }
+  }
+
+  private def extendPostWithDetails(postList: List[Post], loggedUserId: BigInt): Future[List[PostDetailsResponse]] = {
+    Future.sequence {
+      postList.map { basicPost =>
+        for {
+          likeCount <- likeRepository.likeCount(basicPost.id)
+          liked <- likeRepository.getLikeByUserAndPost(loggedUserId, basicPost.id).map(_.isDefined)
+        } yield PostDetailsResponse(basicPost.id, basicPost.content, basicPost.postedBy, basicPost.creationDate, basicPost.edited, likeCount, liked)
+      }
     }
   }
 
