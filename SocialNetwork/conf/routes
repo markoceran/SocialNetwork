@@ -18,3 +18,4 @@ POST    /getUsersPosts                      controllers.PostController.getPostsB
 POST    /getMyFriendsPosts                  controllers.PostController.getMyFriendsPosts
 POST    /like                               controllers.LikeController.like
 DELETE    /unlike                           controllers.LikeController.unlike
+POST    /userSearch                         controllers.UserController.searchUsersByPrefix

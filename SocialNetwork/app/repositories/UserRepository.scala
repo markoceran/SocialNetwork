@@ -84,4 +84,10 @@ class UserRepository @Inject()(db: Database){
     }
   }(databaseExecutionContext)
 
+  def searchUsersByPrefix(prefix: String, pageNumber: Int, pageSize: Int): Future[List[UserDetailsResponse]] = Future {
+    db.withConnection { implicit connection =>
+      SQL"SELECT id, username FROM user WHERE username LIKE ${prefix + "%"} LIMIT $pageSize OFFSET ${(pageNumber - 1) * pageSize}".as(userWithoutPasswordParser.*)
+    }
+  }(databaseExecutionContext)
+
 }

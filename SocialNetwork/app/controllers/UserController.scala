@@ -1,15 +1,15 @@
 package controllers
 
 import javax.inject._
-import play.api.mvc._
-import models.{LoginRequest, NewPasswordRequest, NewUsernameRequest, User}
+import play.api.mvc.{_}
+import models.{LoginRequest, NewPasswordRequest, NewUsernameRequest, User, UserSearch}
 import services.UserService
 
 import javax.inject.Inject
 import play.api.libs.json.Json
-import helper.{TokenValidationAction}
+import helper.TokenValidationAction
 
-import scala.concurrent.{ExecutionContext}
+import scala.concurrent.ExecutionContext
 
 
 @Singleton
@@ -61,6 +61,15 @@ class UserController @Inject()(cc: ControllerComponents, userService: UserServic
       }
     }
   }
+
+  def searchUsersByPrefix = tokenValidationAction.async(parse.json[UserSearch]) { request =>
+    val userSearch = request.body
+    val searchResultFuture = userService.searchUsersByPrefix(userSearch)
+    searchResultFuture.map { users =>
+      Ok(Json.toJson(users))
+    }
+  }
+
 }
 
 

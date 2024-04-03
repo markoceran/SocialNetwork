@@ -69,7 +69,7 @@ class PostService @Inject()(postRepository: PostRepository, likeRepository: Like
   }
 
 
-  private def validatePaginationData(pageNumber: Int, pageSize: Int): Boolean = {
+  def validatePaginationData(pageNumber: Int, pageSize: Int): Boolean = {
     pageNumber > 0 && pageSize > 0 && pageSize <= 100
   }
 
