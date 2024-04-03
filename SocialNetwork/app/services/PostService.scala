@@ -1,5 +1,6 @@
 package services
 
+import helper.PaginationHelper
 import models.{DeletePost, GetUserPosts, NewPost, Pagination, Post, PostDetailsResponse, UpdatePost}
 import repositories.{LikeRepository, PostRepository}
 
@@ -59,7 +60,7 @@ class PostService @Inject()(postRepository: PostRepository, likeRepository: Like
     val pageNumber = getUserPosts.pagination.pageNumber.getOrElse(1)
     val pageSize = getUserPosts.pagination.pageSize.getOrElse(10)
 
-    if (validatePaginationData(pageNumber, pageSize)) {
+    if (PaginationHelper.validatePagination(pageNumber, pageSize)) {
       postRepository.getPostsByUser(getUserPosts.username, pageNumber, pageSize).flatMap { postList =>
         extendPostWithDetails(postList, loggedUserId)
       }
@@ -68,16 +69,11 @@ class PostService @Inject()(postRepository: PostRepository, likeRepository: Like
     }
   }
 
-
-  def validatePaginationData(pageNumber: Int, pageSize: Int): Boolean = {
-    pageNumber > 0 && pageSize > 0 && pageSize <= 100
-  }
-
   def getMyFriendsPosts(loggedUserId: BigInt, pagination: Pagination): Future[List[PostDetailsResponse]] = {
     val pageNumber = pagination.pageNumber.getOrElse(1)
     val pageSize = pagination.pageSize.getOrElse(10)
 
-    if (validatePaginationData(pageNumber, pageSize)) {
+    if (PaginationHelper.validatePagination(pageNumber, pageSize)) {
       postRepository.getMyFriendsPosts(loggedUserId, pageNumber, pageSize).flatMap{ postList =>
         extendPostWithDetails(postList, loggedUserId)
       }

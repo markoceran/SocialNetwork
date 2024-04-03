@@ -1,10 +1,10 @@
 package services
 
 
-import helper.TokenUtils
+import helper.{PaginationHelper, TokenUtils}
 
 import javax.inject.Inject
-import models.{LoginRequest, NewPasswordRequest, NewUsernameRequest, Pagination, User, UserDetailsResponse, UserSearch}
+import models.{LoginRequest, NewPasswordRequest, NewUsernameRequest, User, UserDetailsResponse, UserSearch}
 import org.mindrot.jbcrypt.BCrypt
 import repositories.UserRepository
 
@@ -12,7 +12,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.matching.Regex
 
 
-class UserService @Inject()(userRepository: UserRepository, postService: PostService) (implicit ec: ExecutionContext){
+class UserService @Inject()(userRepository: UserRepository) (implicit ec: ExecutionContext){
 
   def createUser(user: User): Future[(Boolean, String)] = {
     validateUsername(user.username).flatMap { usernameValid =>
@@ -109,7 +109,7 @@ class UserService @Inject()(userRepository: UserRepository, postService: PostSer
     val pageNumber = userSearch.pagination.pageNumber.getOrElse(1)
     val pageSize = userSearch.pagination.pageSize.getOrElse(10)
 
-    if(postService.validatePaginationData(pageNumber, pageSize) && validatePrefix(userSearch.prefix)){
+    if(PaginationHelper.validatePagination(pageNumber, pageSize) && validatePrefix(userSearch.prefix)){
       userRepository.searchUsersByPrefix(userSearch.prefix, pageNumber, pageSize)
     } else {
       Future.successful(List.empty[UserDetailsResponse])
